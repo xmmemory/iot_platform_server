@@ -4,10 +4,10 @@ import json
 
 def add_post(router:UrlDispatcher):
     router.add_post(
-        path= '/getProject',
+        path= '/getDevice',
         handler= handle
     )
 
 async def handle(request:Request):
-    device = await MySqlConn.rawSqlCmd("SELECT id, project_name from projects")   
+    device = await MySqlConn.rawSqlCmd("SELECT id, device_name, device_num, area_id from devices ORDER BY id ASC")   
     return HTTPOk(text=json.dumps(device))

@@ -51,38 +51,38 @@ class MySqlConn:
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 async with MySqlConn.pool.acquire() as conn:
+                    if not isinstance(conn, aiomysql.connection.Connection): raise TypeError()
                     async with conn.cursor() as cursor:
-                        if 'cursor' in func.__code__.co_varnames:
-                            return await func(cursor, *args, **kwargs)
-                        else:
-                            return await func(*args, **kwargs)
+                        res = await func(cursor, *args, **kwargs)
+                        await conn.commit()
+                return res
             return wrapper
         return decorator
 
     
-    def transactional_with_cursor():
-        def decorator(func):
-            @wraps(func)
-            async def wrapper(*args, **kwargs):
-                async with MySqlConn.pool.acquire() as conn:
-                    try:
-                        if not isinstance(conn, aiomysql.connection.Connection): raise TypeError()
-                        await conn.begin()
-                        async with conn.cursor() as cursor:
-                            result = await func(cursor, *args, **kwargs)
-                        await conn.commit()
-                        return result                    
-                    except Exception as e:
-                        await conn.rollback()
-                        print(f"Transaction rolled back due to error: {e}")
-                        raise
-            return wrapper
-        return decorator
+    # def transactional_with_cursor():
+    #     def decorator(func):
+    #         @wraps(func)
+    #         async def wrapper(*args, **kwargs):
+    #             async with MySqlConn.pool.acquire() as conn:
+    #                 try:
+    #                     if not isinstance(conn, aiomysql.connection.Connection): raise TypeError()
+    #                     await conn.begin()
+    #                     async with conn.cursor() as cursor:
+    #                         result = await func(cursor, *args, **kwargs)
+    #                     await conn.commit()
+    #                     return result                    
+    #                 except Exception as e:
+    #                     await conn.rollback()
+    #                     print(f"Transaction rolled back due to error: {e}")
+    #                     raise
+    #         return wrapper
+    #     return decorator
     
     @with_cursor()
     async def rawSqlCmd(cursor:aiomysql.Cursor, query:str):
         try:
-            await cursor.execute(query)
+            n = await cursor.execute(query) # n 为该操作影响的行数
         except pymysql.err.ProgrammingError:
             exc_type, exc_value, exc_tb = sys.exc_info()
             err_code, err_msg = exc_value.args
@@ -95,19 +95,12 @@ class MySqlConn:
             print(f"  -- Error Message:   {err_msg}", file=sys.stderr)
             print("\033[0m", end='', file=sys.stderr)
             return None
-        
         return await cursor.fetchall()
     
-    async def execute_query(self, query, params=None):
-        # 使用连接池获取连接并执行查询
-        async with self.pool.acquire() as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute(query, params)
-                await conn.commit()
-
-    async def fetch_all(self, query, params=None):
-        # 使用连接池获取连接并返回查询结果
-        async with self.pool.acquire() as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute(query, params)
-                return await cursor.fetchall()
+    
+    # @transactional_with_cursor()
+    # async def sqlTransaction(cursor:aiomysql.Cursor, query_list:list):
+    #     res_list = []
+    #     for query in query_list:
+    #         res_list.append(await cursor.execute(query))
+    #     return res_list
