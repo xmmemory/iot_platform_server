@@ -35,7 +35,7 @@ async def modify(request: Request):
             return HTTPBadRequest(text="upload data is not enough.") 
 
         if command == "insert_var":
-            # TODO 应该在插入数据之前，首先判断是否存在相同设备
+            # TODO 应该在插入数据之前，首先判断是否存在相同设备(var_code & device_id相同)
             if 1:   
                 data = await MySqlConn.rawSqlCmd(
                     f'''INSERT INTO vars (var_name, var_code, var_type, var_permission, device_id)

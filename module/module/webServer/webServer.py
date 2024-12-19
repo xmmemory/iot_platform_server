@@ -13,7 +13,7 @@ class WebServer:
         self.host = host
         self.port = port
         self.app = aiohttp.web.Application()
-        self.mysqlDb = MySqlConn("127.0.0.1", 3306, "root", "FORever1437", "lvrulan_mysql")
+        self.mysqlDb = MySqlConn("101.201.60.179", 3306, "lrl", "Asynchronous_20241219", "lvrulan_mysql")
 
         if '--https' in sys.argv:
             self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)

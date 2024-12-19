@@ -6,12 +6,6 @@ from functools import wraps
 
 
 class MySqlConn:
-    pool:aiomysql.pool.Pool = None
-    host:str = "127.0.0.1"
-    port:int = 3306
-    user:str = "root"
-    password:str = "FORever1437"
-    db:str = "lvrulan_mysql"
 
     def __init__(self, host:str, port:int, user:str, password:str, db:str):
         MySqlConn.host = host

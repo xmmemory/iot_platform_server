@@ -19,9 +19,9 @@ async def handle(request:Request):
             if not device_id:
                 return HTTPBadRequest(text=json.dumps({"error": str(e)}))
             else:
-                vars = await MySqlConn.rawSqlCmd(f'''SELECT id, var_name, var_code, var_type, var_permission, device_id 
-                                                 from vars WHERE device_id = "{device_id}" ORDER BY id ASC''')
-                var_list = [{"var_id": var[0], "var_name": var[1], "var_code": var[2], "var_type": var[3], "var_permission": var[4], "device_id": var[5]} for var in vars]
+                vars = await MySqlConn.rawSqlCmd(f'''SELECT id, var_name, var_code, var_type, var_permission, var_value 
+                                                 from vars WHERE device_id = "{device_id}" ORDER BY id ASC''')                
+                var_list = [{"var_id": var[0], "var_name": var[1], "var_code": var[2], "var_type": var[3], "var_permission": var[4], "var_value": var[5]} for var in vars]
                 return HTTPOk(text=json.dumps(var_list))
                  
         elif command == "filter_var_id":
