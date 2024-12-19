@@ -9,5 +9,6 @@ def add_post(router:UrlDispatcher):
     )
 
 async def handle(request:Request):
-    device = await MySqlConn.rawSqlCmd("SELECT id, project_name from projects ORDER BY id ASC")   
-    return HTTPOk(text=json.dumps(device))
+    projects = await MySqlConn.rawSqlCmd("SELECT project_id, project_name from projects ORDER BY project_id ASC")    
+    project_list = [{"project_id": project[0], "project_name": project[1]} for project in projects]    
+    return HTTPOk(text=json.dumps(project_list))

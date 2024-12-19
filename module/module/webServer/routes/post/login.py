@@ -21,7 +21,7 @@ async def login(request: Request):
         user_password = (await MySqlConn.rawSqlCmd(f'SELECT password FROM users WHERE username = "{username}"'))
         user_password = user_password[0][0]
     except IndexError:
-        return HTTPUnauthorized(reason="Invalid username")
+        return HTTPUnauthorized(reason="用户不存在")
     
     # 直接比较明文密码
     if user_password == password:
@@ -31,4 +31,4 @@ async def login(request: Request):
         await MySqlConn.rawSqlCmd(f'UPDATE users SET token = "{token}" WHERE username = "{username}"')
         return HTTPOk(text=f"authorized-token={token}")
     else:
-        return HTTPUnauthorized(text="账户名或密码错误")
+        return HTTPUnauthorized(text="密码错误")
