@@ -1,50 +1,48 @@
-import sys
-
 import aiomysql
-import pymysql
 from functools import wraps
 
 
 class MySqlConn:
+    mysqlConnDict:dict[str, aiomysql.pool.Pool] = {}
+    nowDbName:str = None
 
-    def __init__(self, host:str, port:int, user:str, password:str, db:str):
-        MySqlConn.host = host
-        MySqlConn.port = port
-        MySqlConn.user = user
-        MySqlConn.password = password
-        MySqlConn.db = db
-
-
-    async def openConn(*args, **kwargs):
-        MySqlConn.pool = await aiomysql.create_pool(
-            host = MySqlConn.host,
-            port = MySqlConn.port,
-            user = MySqlConn.user,
-            password = MySqlConn.password,
-            db = MySqlConn.db,
-        )
-
-        print(f"\033[1;32mMysql database connection opened.")
-        print(f"\033[1;30m", end='')
-        print(f"  -- host:    {MySqlConn.host}")
-        print(f"  -- port:    {MySqlConn.port}")
-        print(f"  -- user:    {MySqlConn.user}")
-        print(f"  -- db:      {MySqlConn.db}")
-        print("\033[0m")
+    async def openConn(host:str, port:int, user:str, password:str, db_name:str):
+        try:
+            pool = await aiomysql.create_pool(host = host, port = port, user = user,
+                                              password = password, db = db_name)
+            MySqlConn.mysqlConnDict[db_name] = pool
+            print(f"\033[1;32mMysql database {db_name} connection opened.\033[0m")
+            print(f"\033[1;30m", end='')
+            print(f"  -- host:    {host}")
+            print(f"  -- port:    {port}")
+            print(f"  -- user:    {user}")
+            print(f"  -- db:      {db_name}")
+            print("\033[0m")
+        except Exception as e:
+            print(f"\033[1;31mError occurred while openConn:\033[0m {e}")
 
 
-    async def closeConn(*args, **kwargs):
-        MySqlConn.pool.close()
-        await MySqlConn.pool.wait_closed()
-        print("\033[1;33mMysql database connection closed.")
-        print("\033[0m")
+    async def closeConn(db_name:str):
+        try:
+            db:aiomysql.pool.Pool = MySqlConn.mysqlConnDict.pop(db_name)
+        except Exception:
+            return print(f"\033[1;31mMysql database {db_name} is not connected.\033[0m")
+        db.close()
+        await db.wait_closed()
+        print(f"\033[1;33mMysql database `{db_name}` connection closed.\033[0m")
+    
+
+    def useDb(db_name:str):
+        if db_name not in MySqlConn.mysqlConnDict.keys():
+            return print(f"\033[1;31mMysql database {db_name} is not connected.\033[0m")
+        MySqlConn.nowDbName = db_name
     
     
     def with_cursor():
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
-                async with MySqlConn.pool.acquire() as conn:
+                async with MySqlConn.mysqlConnDict[MySqlConn.nowDbName].acquire() as conn:
                     if not isinstance(conn, aiomysql.connection.Connection): raise TypeError()
                     async with conn.cursor() as cursor:
                         res = await func(cursor, *args, **kwargs)
@@ -53,6 +51,14 @@ class MySqlConn:
             return wrapper
         return decorator
 
+
+    @with_cursor()
+    async def rawSqlCmd(cursor:aiomysql.cursors.Cursor, query:str):
+        try:
+            n = await cursor.execute(query)
+        except Exception as e:
+            return print(f"\033[1;31mError occurred when execute query `{query}`. {e}.\033[0m")
+        return await cursor.fetchall()
     
     # def transactional_with_cursor():
     #     def decorator(func):
@@ -72,26 +78,7 @@ class MySqlConn:
     #                     raise
     #         return wrapper
     #     return decorator
-    
-    @with_cursor()
-    async def rawSqlCmd(cursor:aiomysql.Cursor, query:str):
-        try:
-            n = await cursor.execute(query) # n 为该操作影响的行数
-        except pymysql.err.ProgrammingError:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            err_code, err_msg = exc_value.args
-            exc_class = f"{exc_type.__module__}.{exc_type.__name__}"
-
-            print("\033[1;31m", end='', file=sys.stderr)
-            print(f"{exc_class} occurred in `{__file__}` at line {exc_tb.tb_lineno}.", file=sys.stderr)
-            print("\033[1;30m", end='', file=sys.stderr)
-            print(f"  -- Error Code:      {err_code}", file=sys.stderr)
-            print(f"  -- Error Message:   {err_msg}", file=sys.stderr)
-            print("\033[0m", end='', file=sys.stderr)
-            return None
-        return await cursor.fetchall()
-    
-    
+   
     # @transactional_with_cursor()
     # async def sqlTransaction(cursor:aiomysql.Cursor, query_list:list):
     #     res_list = []

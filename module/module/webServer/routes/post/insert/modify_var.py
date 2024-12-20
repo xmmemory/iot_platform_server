@@ -31,7 +31,7 @@ async def modify(request: Request):
         if (var_name and var_name.strip() and var_code is not None and var_type and var_type.strip() and var_permission and var_permission.strip() and device_id is not None):
             print(command, var_name, var_code, var_type, var_permission, device_id, var_id)
         else:
-            print("insufficient data:" ,command, var_name, var_code, var_type, var_permission, device_id, var_id)
+            print(command, "insufficient data:", var_name, var_code, var_type, var_permission, device_id, var_id)
             return HTTPBadRequest(text="upload data is not enough.") 
 
         if command == "insert_var":

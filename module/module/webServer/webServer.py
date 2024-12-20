@@ -6,14 +6,14 @@ import sys
 
 from module.db.mysqlConn import MySqlConn
 from . import routes
-
+from module.mqtt.subscriber import MqttSubscriber
+from module.mqtt.decode import msg_callback
 
 class WebServer:
     def __init__(self, host:str, port:int):
         self.host = host
         self.port = port
         self.app = aiohttp.web.Application()
-        self.mysqlDb = MySqlConn("101.201.60.179", 3306, "lrl", "Asynchronous_20241219", "lvrulan_mysql")
 
         if '--https' in sys.argv:
             self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -44,20 +44,25 @@ class WebServer:
             ssl_context= self.ssl_context if '--https' in sys.argv else None
         )
         await self.site.start()
-        await self.mysqlDb.openConn()
+        # mysql数据库
+        await MySqlConn.openConn("101.201.60.179", 3306, "lrl", "Asynchronous_20241219", "lvrulan_mysql")
+        MySqlConn.useDb("lvrulan_mysql")
         print(f"\033[1;32mWeb server started.")
         print(f"\033[1;30m", end='')
         print(f"  -- host:    {self.host}")
         print(f"  -- port:    {self.port}")
         print(f"  -- proc:    {'https' if '--https' in sys.argv else 'http'}")
         print("\033[0m")
-        await self.stop_event.wait()
-
+        # mqtt
+        mqtt = MqttSubscriber().connect("101.201.60.179", 1883, "lrl001", "123456")
+        mqtt.subscribe("#")
+        self.mqtt_task = asyncio.get_event_loop().create_task(mqtt.listen())
 
     async def shutdown(self):
         self.stop_event.set()
         await self.site.stop()
         await self.runner.cleanup()
-        await self.mysqlDb.closeConn()
+        self.mqtt_task.cancel()
+        await MySqlConn.closeConn('lvrulan_mysql')
         print("\033[1;33mWeb server shutting down.")
         print("\033[0m")

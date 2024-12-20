@@ -1,6 +1,22 @@
 import paho.mqtt.client as mqtt 
-import json
 
+
+class MqttPublisher:
+    def __init__(self):
+        self.client = mqtt.Client()
+
+    def connect(self, broker_addr:str, broker_port:int, username:str, password:str):
+        self.client.username_pw_set(username, password)
+        self.client.connect(broker_addr, broker_port)
+
+    def disconnect(self):
+        self.client.disconnect()
+    
+    def public(self, topic:str, payload:str):
+        self.client.publish(topic, payload)
+
+
+"""
 # 配置 MQTT 服务器的参数
 broker_address = "49.232.133.59"  # 云财服务器
 port = 7203                      # 113服务器端口
@@ -44,3 +60,4 @@ print(f"published to topic '{topic}'")
 
 # 断开与服务器的连接
 client.disconnect()
+"""

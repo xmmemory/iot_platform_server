@@ -2,6 +2,7 @@ from aiohttp import web
 import secrets  # 用于生成随机 token
 from aiohttp.web import UrlDispatcher, Request, HTTPOk, HTTPBadRequest, HTTPUnauthorized
 from module.db.mysqlConn import MySqlConn
+import json
 
 def add_post(router: UrlDispatcher):
     router.add_post('/login', handler=login)
@@ -15,6 +16,9 @@ async def login(request: Request):
     
     username = data.get('username')
     password = data.get('password')
+
+    # data = await MySqlConn.rawSqlCmd(f'INSERT INTO test (value) VALUES ("123")')
+    # return HTTPBadRequest(text=json.dumps(data))
 
     try:
         # 直接从数据库获取密码

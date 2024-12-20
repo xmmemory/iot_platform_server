@@ -36,7 +36,7 @@ async def handle(request:Request):
         return HTTPBadRequest(text=json.dumps({"error": str(ve)}))
 
     except Exception as e:
-        print(f"Failed to insert device data: {str(e)}")
+        print(f"Failed to get device data: {str(e)}")
         return HTTPBadRequest(text=json.dumps({"error": str(e)}))
 
 
