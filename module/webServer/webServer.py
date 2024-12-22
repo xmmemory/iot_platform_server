@@ -28,7 +28,7 @@ class WebServer:
 
     def setup_routes(self):
         routes.add_routes(self.app.router)
-
+        self.app.router.add_static("/download", "/home/sunlin/lvrulan_server_leon/file",show_index=True)
         async def handle_404(request:aiohttp.web.Request):
             return aiohttp.web.HTTPNotFound(text=f"404 Not Found:\n{request.path}")
         self.app.router.add_route('*', '/{tail:.*}', handle_404)

@@ -1,5 +1,6 @@
 from module.db.mysqlConn import MySqlConn
 import aiomqtt
+import json
 
 class MqttSubscriber:
     def connect(self, broker_addr:str, broker_port:int, username:str, password:str):
@@ -22,9 +23,30 @@ class MqttSubscriber:
                 await self.message_callback(topic, payload)
 
     async def message_callback(self, topic: str, payload: str):
-        payload_list = payload
-        res = await MySqlConn.rawSqlCmd(f'INSERT INTO test (value) VALUES ("{{payload_list}}")')
-        print(res)
+        payload_dict = json.loads(payload)
+        for key, value in payload_dict.items():
+            if isinstance(value, (int, float)):  # 处理简单的键值对
+                var_full_code = key
+                latest_value = value
+                sql = f'''
+                    UPDATE vars 
+                    SET latest_value = "{latest_value}"
+                    WHERE var_full_code = "{var_full_code}"
+                '''
+                await MySqlConn.rawSqlCmd(sql)
+
+            elif isinstance(value, dict):  # 处理嵌套的布尔值字典
+                for sub_key, sub_value in value.items():
+                    composite_key = f"{key}.{sub_key}"
+                    latest_value = int(sub_value)  # 将布尔值转换为 0/1
+                    sql = f'''
+                        UPDATE vars 
+                        SET latest_value = "{latest_value}"
+                        WHERE var_full_code = "{composite_key}"
+                    '''
+                    await MySqlConn.rawSqlCmd(sql)
+        # res = await MySqlConn.rawSqlCmd(f'INSERT INTO test (value) VALUES ("456")')
+        # print(res)
 
 
 # # 配置 MQTT 服务器的参数

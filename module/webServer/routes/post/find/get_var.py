@@ -24,11 +24,11 @@ async def handle(request:Request):
                                                  from vars WHERE device_id = "{device_id}" ORDER BY id ASC''')
                 var_list = [{"var_id": var[0], "var_name": var[1], "var_code": var[2], "var_type": var[3], "var_permission": var[4], "latest_value": var[5], "last_datetime": var[6]} for var in vars]
                 
-                print(var_list)
+                # print(var_list)
                 # 转换 datetime 为字符串
                 for item in var_list:
                     item['last_datetime'] = item['last_datetime'].isoformat()
-                print(var_list)
+                # print(var_list)
                 return HTTPOk(text=json.dumps(var_list))
                  
         elif command == "filter_var_id":
