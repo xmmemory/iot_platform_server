@@ -36,18 +36,18 @@ async def modify(request: Request):
         if command == "insert_device":
             # TODO 应该在插入数据之前，首先判断是否存在相同设备
             if 1:             
-                data = await MySqlConn.rawSqlCmd(
+                res = await MySqlConn.rawSqlCmd(
                 f'INSERT INTO devices (device_name, device_num, area_id) VALUES ("{device_name}",{device_num}, {area_id})')
-                print(data)
-                return HTTPOk(text=json.dumps(data))
+                print(res)
+                return HTTPOk(text=json.dumps(res))
             else:
                 return HTTPBadRequest(text="insert device fail, device is exist.")        
                     
         elif command == "update_device":
-            data = await MySqlConn.rawSqlCmd(
+            res = await MySqlConn.rawSqlCmd(
                     f'''UPDATE devices SET device_name = "{device_name}", device_num = "{device_num}", area_id = "{area_id}" WHERE id = {device_id}''')
-            print(data)
-            return HTTPOk(text=json.dumps(data))
+            print(res)
+            return HTTPOk(text=json.dumps(res))
             
         
         else:

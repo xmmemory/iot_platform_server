@@ -1,6 +1,7 @@
 from module.db.mysqlConn import MySqlConn
 import aiomqtt
 import json
+import asyncio
 
 class MqttSubscriber:
     def connect(self, broker_addr:str, broker_port:int, username:str, password:str):
@@ -15,12 +16,16 @@ class MqttSubscriber:
         self.topic_list.append(topic)
     
     async def listen(self):
-        async with aiomqtt.Client(hostname=self.broker_addr, port=self.broker_port,
-                                     username=self.username, password=self.password) as client:
-            for topic in self.topic_list: await client.subscribe(topic)
-            async for message in client.messages:
-                topic, payload = message.topic, message.payload.decode()
-                await self.message_callback(topic, payload)
+        try:
+            async with aiomqtt.Client(hostname=self.broker_addr, port=self.broker_port,
+                                        username=self.username, password=self.password) as client:
+                for topic in self.topic_list: await client.subscribe(topic)
+                async for message in client.messages:
+                    topic, payload = message.topic, message.payload.decode()
+                    await self.message_callback(topic, payload)
+        except asyncio.CancelledError:
+            print("listen Cancelled.")
+            raise
 
     async def message_callback(self, topic: str, payload: str):
         payload_dict = json.loads(payload)
@@ -38,7 +43,7 @@ class MqttSubscriber:
             elif isinstance(value, dict):  # 处理嵌套的布尔值字典
                 for sub_key, sub_value in value.items():
                     composite_key = f"{key}.{sub_key}"
-                    latest_value = int(sub_value)  # 将布尔值转换为 0/1
+                    latest_value = sub_value
                     sql = f'''
                         UPDATE vars 
                         SET latest_value = "{latest_value}"

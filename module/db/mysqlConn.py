@@ -28,6 +28,7 @@ class MySqlConn:
         except Exception:
             return print(f"\033[1;31mMysql database {db_name} is not connected.\033[0m")
         db.close()
+        print("db.close...")
         await db.wait_closed()
         print(f"\033[1;33mMysql database `{db_name}` connection closed.\033[0m")
     

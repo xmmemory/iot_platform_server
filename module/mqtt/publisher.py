@@ -14,7 +14,7 @@ class MqttPublisher:
             # 将字典 payload 转换为 JSON 字符串
             payload_str = json.dumps(payload)
             await client.publish(topic, payload_str)
-            print(f"Message published to topic '{topic}': {payload_str}")
+            print(f"Message published to topic '{topic}': {payload_str}")        
 
 
 """

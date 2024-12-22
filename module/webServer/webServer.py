@@ -55,14 +55,16 @@ class WebServer:
         print("\033[0m")
         # mqtt
         mqtt = MqttSubscriber().connect("101.201.60.179", 1883, "lrl001", "123456")
-        mqtt.subscribe("#")
-        self.mqtt_task = asyncio.get_event_loop().create_task(mqtt.listen())
+        mqtt.subscribe("40800965")
+        self.mqtt_task = asyncio.get_running_loop().create_task(mqtt.listen())
 
     async def shutdown(self):
         self.stop_event.set()
         await self.site.stop()
         await self.runner.cleanup()
+        print("self.mqtt_task.cancel...")
         self.mqtt_task.cancel()
+        print("self.mqtt_task.cancel---finish.")
         await MySqlConn.closeConn('lvrulan_mysql')
         print("\033[1;33mWeb server shutting down.")
         print("\033[0m")

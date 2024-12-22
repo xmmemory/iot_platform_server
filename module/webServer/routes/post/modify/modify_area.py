@@ -34,18 +34,18 @@ async def modify(request: Request):
         if command == "insert_area":
             # TODO 应该在插入数据之前，首先判断是否存在相同设备
             if 1:             
-                data = await MySqlConn.rawSqlCmd(
+                res = await MySqlConn.rawSqlCmd(
                 f'INSERT INTO areas (area_name) VALUES ("{area_name}")')
-                print(data)
-                return HTTPOk(text=json.dumps(data))
+                print(res)
+                return HTTPOk(text=json.dumps(res))
             else:
                 return HTTPBadRequest(text="insert area fail, area is exist.")        
                     
         elif command == "update_area":
-            data = await MySqlConn.rawSqlCmd(
+            res = await MySqlConn.rawSqlCmd(
                     f'''UPDATE areas SET area_name = "{area_name}" WHERE id = {area_id}''')
-            print(data)
-            return HTTPOk(text=json.dumps(data))
+            print(res)
+            return HTTPOk(text=json.dumps(res))
                     
         else:
             return HTTPBadRequest(text="unknow error.")
