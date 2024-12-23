@@ -33,13 +33,6 @@ class MqttSubscriber:
             if isinstance(value, (int, float)):  # 处理简单的键值对
                 var_full_code = key
                 latest_value = round(value, 1)
-                # 
-                sql = f'''
-                    UPDATE vars 
-                    SET latest_value = "{latest_value}"
-                    WHERE var_full_code = "{var_full_code}"
-                '''
-                await MySqlConn.rawSqlCmd(sql)
                 # 使用 insert_or_create_table 函数来创建表并插入数据
                 await self.insert_or_create_table(var_full_code, latest_value)
 
@@ -47,17 +40,16 @@ class MqttSubscriber:
                 for sub_key, sub_value in value.items():
                     composite_key = f"{key}.{sub_key}"
                     latest_value = sub_value
-                    # 
-                    sql = f'''
-                        UPDATE vars 
-                        SET latest_value = "{latest_value}"
-                        WHERE var_full_code = "{composite_key}"
-                    '''
-                    await MySqlConn.rawSqlCmd(sql)
                     # 使用 insert_or_create_table 函数来创建表并插入数据
                     await self.insert_or_create_table(composite_key, latest_value)
 
-    async def insert_or_create_table(self, var_full_code: str, value: str):
+    async def insert_or_create_table(self, var_full_code: str, value: str):                           
+        sql = f'''
+            UPDATE vars 
+            SET latest_value = "{value}"
+            WHERE var_full_code = "{var_full_code}"
+        '''
+        await MySqlConn.rawSqlCmd(sql)
         # 用下划线替换点号，避免表名错误
         table_name = f"var_{var_full_code.replace('.', '_')}"
 
