@@ -54,7 +54,7 @@ async def modify(request: Request):
                     var_type = "{var_type}",
                     var_permission = "{var_permission}",
                     device_id = "{device_id}",
-                    var_full_code = "{var_full_code}",
+                    var_full_code = "{var_full_code}"
                     WHERE id = {var_id}''')
             print(res)
             return HTTPOk(text=json.dumps(res))

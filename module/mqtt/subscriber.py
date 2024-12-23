@@ -32,58 +32,65 @@ class MqttSubscriber:
         for key, value in payload_dict.items():
             if isinstance(value, (int, float)):  # 处理简单的键值对
                 var_full_code = key
-                latest_value = value
+                latest_value = round(value, 1)
+                # 
                 sql = f'''
                     UPDATE vars 
                     SET latest_value = "{latest_value}"
                     WHERE var_full_code = "{var_full_code}"
                 '''
                 await MySqlConn.rawSqlCmd(sql)
+                # 使用 insert_or_create_table 函数来创建表并插入数据
+                await self.insert_or_create_table(var_full_code, latest_value)
 
             elif isinstance(value, dict):  # 处理嵌套的布尔值字典
                 for sub_key, sub_value in value.items():
                     composite_key = f"{key}.{sub_key}"
                     latest_value = sub_value
+                    # 
                     sql = f'''
                         UPDATE vars 
                         SET latest_value = "{latest_value}"
                         WHERE var_full_code = "{composite_key}"
                     '''
                     await MySqlConn.rawSqlCmd(sql)
-        # res = await MySqlConn.rawSqlCmd(f'INSERT INTO test (value) VALUES ("456")')
-        # print(res)
+                    # 使用 insert_or_create_table 函数来创建表并插入数据
+                    await self.insert_or_create_table(composite_key, latest_value)
 
+    async def insert_or_create_table(self, var_full_code: str, value: str):
+        # 用下划线替换点号，避免表名错误
+        table_name = f"var_{var_full_code.replace('.', '_')}"
 
-# # 配置 MQTT 服务器的参数
+        # 检查表是否已存在
+        check_table_sql = f"SHOW TABLES LIKE '{table_name}'"
+        result = await MySqlConn.rawSqlCmd(check_table_sql)
 
-# # broker_address = "49.232.133.59"  # 云财服务器
-# # port = 7203                      # 113服务器端口
-# broker_address = "101.201.60.179"  # 绿如蓝IOT服务器
-# port = 1883                      # 绿如蓝服务器端口
-
-# topic = "#"            # 要订阅的主题
-# username = "lrl001"       # 替换为你的用户名
-# password = "123456"       # 替换为你的密码
-
-# # 定义回调函数，当收到消息时触发
-# def on_message(client, userdata, message):
-#     print(f"Received message '{message.payload.decode()}' on topic '{message.topic}'")
-
-# # 创建 MQTT 客户端实例
-# client = mqtt.Client()
-
-# # 设置用户名和密码
-# client.username_pw_set(username, password)
-
-# # 连接到服务器
-# client.connect(broker_address, port)
-
-# # 设置回调函数
-# client.on_message = on_message
-# # 订阅主题
-# client.subscribe(topic)
-
-# print(f"Subscribed to topic '{topic}'")
-
-# # 开始循环等待消息
-# client.loop_forever()
+        # 如果表不存在，则创建表
+        if not result:
+            # SQL: 创建表，如果不存在
+            sql_create = f'''
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    value VARCHAR(255) NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            '''
+            await MySqlConn.rawSqlCmd(sql_create)
+        
+        # 在插入数据前，查询表中最后一行的值
+        sql_select_last_value = f'''
+            SELECT value FROM {table_name} ORDER BY id DESC LIMIT 1
+        '''
+        last_value_result = await MySqlConn.rawSqlCmd(sql_select_last_value)
+        
+        # 判断表中最后的值是否与当前值一致
+        if last_value_result:
+            if str(last_value_result[0][0]) == str(value):  # 转换为 string 进行比较
+                return  # 如果值相同，跳过插入操作
+                
+        # SQL: 插入数据，数据库会自动记录当前时间戳
+        sql_insert = f'''
+            INSERT INTO {table_name} (value)
+            VALUES ("{value}")
+        '''
+        await MySqlConn.rawSqlCmd(sql_insert)
