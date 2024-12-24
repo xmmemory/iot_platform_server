@@ -20,12 +20,14 @@ async def handle(request:Request):
                 return HTTPBadRequest(text=json.dumps({"error": str(e)}))
             else:
                 device = await MySqlConn.rawSqlCmd(f'''SELECT * from devices WHERE id = "{device_id}" ORDER BY id ASC''')
-                device_list = [{"device_id": ONE_device[0], "device_name": ONE_device[1], "device_num": ONE_device[2], "area_id": ONE_device[3]} for ONE_device in device]                
+                device_list = [{"device_id": ONE_device[0], "device_name": ONE_device[1], 
+                                "device_num": ONE_device[2], "area_id": ONE_device[3], "icon_addr": ONE_device[4]} for ONE_device in device]                
                 return HTTPOk(text=json.dumps(device_list))
             
         elif command == "all_devices":
-            devices = await MySqlConn.rawSqlCmd("SELECT id, device_name, device_num, area_id from devices ORDER BY id ASC")
-            device_list = [{"device_id": device[0], "device_name": device[1], "device_num": device[2], "area_id": device[3]} for device in devices] 
+            devices = await MySqlConn.rawSqlCmd("SELECT id, device_name, device_num, area_id, icon_addr from devices ORDER BY id ASC")
+            device_list = [{"device_id": device[0], "device_name": device[1], 
+                            "device_num": device[2], "area_id": device[3], "icon_addr": device[4]} for device in devices] 
             return HTTPOk(text=json.dumps(device_list))
                
         else:

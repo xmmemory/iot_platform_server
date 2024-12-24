@@ -18,6 +18,7 @@ async def modify(request: Request):
         device_name = data.get("device_name")
         device_num = data.get("device_num")
         area_id = data.get("area_id")
+        icon_addr = data.get("icon_addr")
 
         if command == "del_device" and device_id is not None:
             result = await MySqlConn.rawSqlCmd(f'''SELECT * FROM devices WHERE id = "{device_id}"''')
@@ -27,17 +28,17 @@ async def modify(request: Request):
                 res = await MySqlConn.rawSqlCmd(f'''DELETE FROM devices WHERE id ="{device_id}" LIMIT 1''')
                 return HTTPOk(text=json.dumps(res))
 
-        if device_name and device_name.strip() and device_num is not None and area_id is not None:
-            print(command, device_name, device_num, area_id, device_id)
+        if device_name and device_name.strip() and area_id is not None:
+            print(command, device_name, device_num, area_id, device_id, icon_addr)
         else:
-            print(command, "insufficient data:", device_name, device_num, area_id, device_id)
+            print(command, "insufficient data:", device_name, device_num, area_id, device_id, icon_addr)
             return HTTPBadRequest(text="upload data is not enough.") 
 
         if command == "insert_device":
             # TODO 应该在插入数据之前，首先判断是否存在相同设备
-            if 1:             
+            if 1:
                 res = await MySqlConn.rawSqlCmd(
-                f'INSERT INTO devices (device_name, device_num, area_id) VALUES ("{device_name}",{device_num}, {area_id})')
+                f'INSERT INTO devices (device_name, device_num, area_id, icon_addr) VALUES ("{device_name}",{device_num}, {area_id}, "{icon_addr}")')
                 print(res)
                 return HTTPOk(text=json.dumps(res))
             else:
@@ -45,10 +46,9 @@ async def modify(request: Request):
                     
         elif command == "update_device":
             res = await MySqlConn.rawSqlCmd(
-                    f'''UPDATE devices SET device_name = "{device_name}", device_num = "{device_num}", area_id = "{area_id}" WHERE id = {device_id}''')
-            print(res)
+                    f'''UPDATE devices SET device_name = "{device_name}", device_num = "{device_num}", area_id = "{area_id}", icon_addr= "{icon_addr}" WHERE id = {device_id}''')
+            print(res)            
             return HTTPOk(text=json.dumps(res))
-            
         
         else:
             return HTTPBadRequest(text="unknow error.")
