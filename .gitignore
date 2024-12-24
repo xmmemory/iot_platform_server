@@ -26,3 +26,4 @@ npm-debug.log*
 !.vscode/extensions.json
 output.log
 .history
+file/
