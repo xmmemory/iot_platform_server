@@ -3,11 +3,9 @@ import aiohttp.web
 import ssl
 import sys
 
-
 from module.db.mysqlConn import MySqlConn
 from . import routes
 from module.mqtt.subscriber import MqttSubscriber
-from module.mqtt.decode import msg_callback
 
 class WebServer:
     def __init__(self, host:str, port:int):
