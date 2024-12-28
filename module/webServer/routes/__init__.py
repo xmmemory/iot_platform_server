@@ -1,8 +1,9 @@
 from aiohttp.web import UrlDispatcher
 
-from . import get, post, put
+from . import GET, DELETE, POST, PUT
 
 def add_routes(router:UrlDispatcher):
-    get.add_get(router)
-    post.add_post(router)
-    put.add_post(router)
+    DELETE.add_delete(router)
+    GET.add_get(router)
+    POST.add_post(router)
+    # PUT.add_put(router)

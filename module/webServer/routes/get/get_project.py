@@ -4,7 +4,7 @@ import json
 
 def add_get(router:UrlDispatcher):
     router.add_get(
-        path= '/get_project/all_projects',
+        path= '/project',
         handler= handle_all_projects
     )
 

@@ -4,12 +4,12 @@ import json
 
 def add_get(router:UrlDispatcher):
     router.add_get(
-        path= '/device',
+        path= '/get_device/all_devices',
         handler= handle_all_devices
     )
 
     router.add_get(
-        path= '/device/:id',
+        path= '/get_device/device_detail',
         handler= device_detail_filter_by_id
     )
 

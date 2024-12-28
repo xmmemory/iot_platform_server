@@ -4,7 +4,7 @@ import json
 
 def add_get(router:UrlDispatcher):
     router.add_get(
-        path= '/get_area/all_areas',
+        path= '/area',
         handler= handle_all_areas
     )
 

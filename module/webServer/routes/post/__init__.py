@@ -5,6 +5,7 @@ from .modify import modify_area, modify_device, modify_var
 from .control import control_var
 from .find import get_version, get_VarValue
 from . import login
+from . import post_user
 
 def add_post(router:UrlDispatcher):
     
@@ -19,4 +20,5 @@ def add_post(router:UrlDispatcher):
     control_var.add_post(router)
     get_version.add_post(router)
     get_VarValue.add_post(router)
+    post_user.add_post(router)
     
