@@ -4,11 +4,11 @@ import json
 
 def add_post(router: UrlDispatcher):
     router.add_post(
-        path='/modifyDevice',
-        handler=modify
+        path='/device',
+        handler=var_setting
     )
 
-async def modify(request: Request):
+async def var_setting(request: Request):
     try:
         data: dict = await request.json()
 

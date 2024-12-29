@@ -1,8 +1,6 @@
 from aiohttp.web import UrlDispatcher, Request, HTTPOk, HTTPBadRequest
-from module.db.mysqlConn import MySqlConn
 import json
 from module.mqtt.publisher import MqttPublisher
-import asyncio
 from typing import Dict
 
 def add_post(router: UrlDispatcher):
