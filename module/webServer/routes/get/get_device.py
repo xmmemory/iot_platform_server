@@ -7,9 +7,8 @@ def add_get(router:UrlDispatcher):
         path= '/device',
         handler= handle_all_devices
     )
-
     router.add_get(
-        path= '/device/:id',
+        path= '/device/f',
         handler= device_detail_filter_by_id
     )
 
@@ -19,11 +18,11 @@ async def handle_all_devices(request:Request):
                     "device_num": device[2], "area_id": device[3], "icon_addr": device[4]} for device in devices] 
     return HTTPOk(text=json.dumps(device_list))
 
-async def device_detail_filter_by_id(request:Request):
+async def device_detail_filter_by_id(request:Request):    
     try:
         # 从 GET 请求中获取 'device_id' 参数
-        device_id = request.query.get('device_id')  # 从查询参数中获取字段
-        
+        device_id = request.query.get('device_id')  # 从查询参数中获取字段        
+
         if not device_id:
             return HTTPBadRequest(text=json.dumps({"error"}))
         else:
@@ -34,7 +33,7 @@ async def device_detail_filter_by_id(request:Request):
         
     except ValueError as ve:
         print(f"Validation error: {str(ve)}")
-        return HTTPBadRequest(text=json.dumps({"error": str(ve)}))
+        return HTTPBadRequest(text=json.dumps({"error": str(ve)})) 
 
     except Exception as e:
         print(f"Failed to get device data: {str(e)}")
