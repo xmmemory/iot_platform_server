@@ -6,19 +6,19 @@ import json
 def add_get(router:UrlDispatcher):
     router.add_get(
         path= '/var/id/f',
-        handler= filter_var_id
+        handler= get_data_by_var_id
     )
     router.add_get(
         path= '/var/record/f',
-        handler= handle_device_var
+        handler= get_var_recode_by_var_name
     )
     router.add_get(
-        path= '/var/device/f',
-        handler= filter_device_id
+        path= '/vars/device/f',
+        handler= get_vars_by_device_id
     )
     
 
-async def filter_var_id(request:Request):
+async def get_data_by_var_id(request:Request):
     try:
         # 从 GET 请求中获取 'device_id' 参数
         var_id = request.query.get('var_id')  # 从查询参数中获取字段 
@@ -38,7 +38,7 @@ async def filter_var_id(request:Request):
         return HTTPBadRequest(text=json.dumps({"error": str(e)}))
 
   
-async def handle_device_var(request:Request):
+async def get_var_recode_by_var_name(request:Request):
     try:
         # 从 GET 请求中获取 'device_id' 参数
         full_code = request.query.get('full_code')  # 从查询参数中获取字段
@@ -95,7 +95,7 @@ async def handle_device_var(request:Request):
         print(f"Failed to modify var data: {str(e)}")
         return HTTPBadRequest(text=json.dumps({"error": str(e)}))
     
-async def filter_device_id(request:Request):
+async def get_vars_by_device_id(request:Request):
     try:
         # 从 GET 请求中获取 'device_id' 参数
         device_id = request.query.get('device_id')  # 从查询参数中获取字段        

@@ -5,10 +5,14 @@ import json
 def add_get(router:UrlDispatcher):
     router.add_get(
         path= '/version',
-        handler= handle
+        handler= get_version_by_username
+    )
+    router.add_get(
+        path= '/version/f',
+        handler= get_version_by_username
     )
 
-async def handle(request:Request):
+async def get_version_by_username(request:Request):
     try:
         # 从 GET 请求中获取 'username' 参数
         username = request.query.get('username')  # 从查询参数中获取字段

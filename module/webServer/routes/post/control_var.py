@@ -5,10 +5,10 @@ from typing import Dict
 
 def add_post(router: UrlDispatcher):
     router.add_post(
-        path='/controlVar',
-        handler=control
+        path='/control/var',
+        handler=control_var
     )
-async def control(request: Request):
+async def control_var(request: Request):
     try:
         data: dict = await request.json()
     

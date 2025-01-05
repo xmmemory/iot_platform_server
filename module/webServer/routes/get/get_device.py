@@ -4,21 +4,21 @@ import json
 
 def add_get(router:UrlDispatcher):
     router.add_get(
-        path= '/device',
-        handler= handle_all_devices
+        path= '/devices',
+        handler= get_all_devices
     )
     router.add_get(
         path= '/device/f',
-        handler= device_detail_filter_by_id
+        handler= get_device_by_id
     )
 
-async def handle_all_devices(request:Request):
+async def get_all_devices(request:Request):
     devices = await MySqlConn.rawSqlCmd("SELECT id, device_name, device_num, area_id, icon_addr from devices ORDER BY id ASC")
     device_list = [{"device_id": device[0], "device_name": device[1], 
                     "device_num": device[2], "area_id": device[3], "icon_addr": device[4]} for device in devices] 
     return HTTPOk(text=json.dumps(device_list))
 
-async def device_detail_filter_by_id(request:Request):    
+async def get_device_by_id(request:Request):    
     try:
         # 从 GET 请求中获取 'device_id' 参数
         device_id = request.query.get('device_id')  # 从查询参数中获取字段        

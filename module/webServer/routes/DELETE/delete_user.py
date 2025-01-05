@@ -5,10 +5,10 @@ import json
 def add_delete(router: UrlDispatcher):
     router.add_delete(
         path='/user',
-        handler=delete
+        handler=delete_user_by_id
     )
 
-async def delete(request: Request):
+async def delete_user_by_id(request: Request):
     try:
         data: dict = await request.json()
 

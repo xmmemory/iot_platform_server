@@ -4,11 +4,11 @@ import json
 
 def add_get(router:UrlDispatcher):
     router.add_get(
-        path= '/user',
-        handler= handle_all_user
+        path= '/users',
+        handler= get_all_users
     )
 
-async def handle_all_user(request:Request):
+async def get_all_users(request:Request):
     users = await MySqlConn.rawSqlCmd("SELECT id, username, permission from users ORDER BY id ASC")
     user_list = [{"id": user[0], "name": user[1], "permission": user[2]} for user in users]
     return HTTPOk(text=json.dumps(user_list))

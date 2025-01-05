@@ -1,7 +1,7 @@
 from aiohttp.web import UrlDispatcher
 
 from .modify import modify_area, modify_device, modify_var
-from .control import control_var
+from . import control_var
 from . import login
 from . import post_user
 
