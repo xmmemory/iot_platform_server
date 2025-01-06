@@ -5,10 +5,10 @@ import json
 def add_post(router: UrlDispatcher):
     router.add_post(
         path='/user',
-        handler=create
+        handler=add_user
     )
 
-async def create(request: Request):
+async def add_user(request: Request):
     try:
         data: dict = await request.json()
 
@@ -16,9 +16,9 @@ async def create(request: Request):
         user_password = data.get("user_password")
 
         if user_name and user_name.strip() and user_password and user_password.strip():
-            print("user create, name: ", user_name, "ps: " , user_password)
+            print("user add, name: ", user_name, "ps: " , user_password)
         else:
-            print("user create fail.", "insufficient data.")
+            print("user add fail.", "insufficient data.")
             return HTTPBadRequest(text="upload data is not enough.") 
 
         res = await MySqlConn.rawSqlCmd(f'''SELECT * FROM users WHERE username = "{user_name}"''')

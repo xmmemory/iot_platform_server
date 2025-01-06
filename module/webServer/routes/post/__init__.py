@@ -1,16 +1,16 @@
 from aiohttp.web import UrlDispatcher
 
-from .modify import modify_area, modify_device, modify_var
-from . import control_var
+from . import add_area, add_device, add_var
+from ..PUT import put_var
 from . import login
-from . import post_user
+from . import add_user
 
 def add_post(router:UrlDispatcher):
     
     login.add_post(router)
-    modify_device.add_post(router)
-    modify_area.add_post(router)
-    modify_var.add_post(router)
-    control_var.add_post(router)
-    post_user.add_post(router)
+    add_user.add_post(router)
+    add_area.add_post(router)
+    add_device.add_post(router)
+    add_var.add_post(router)
+    put_var.add_post(router)
     

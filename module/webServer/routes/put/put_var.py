@@ -1,14 +1,20 @@
 from aiohttp.web import UrlDispatcher, Request, HTTPOk, HTTPBadRequest
+from module.db.mysqlConn import MySqlConn
 from module.mqtt.publisher import MqttPublisher
 from typing import Dict
 import json
 
 def add_put(router: UrlDispatcher):
     router.add_put(
-        path='/var/control',
-        handler=var_setting
+        path='/update/var',
+        handler=update_var
     )
-async def var_setting(request: Request):
+    router.add_put(
+        path='/modify/var',
+        handler=modify_var
+    )
+
+async def update_var(request: Request):
     try:
         data: dict = await request.json()
     
@@ -38,7 +44,7 @@ async def var_setting(request: Request):
 
             return HTTPOk(text="控制指令下发")
             
-        elif command == "modify_value":
+        elif command == "update_value":
             try:
                 if '.' in new_var_value:
                     new_var_value = float(new_var_value)  # 转换为浮动类型
@@ -68,5 +74,41 @@ async def var_setting(request: Request):
     except Exception as e:
         print(f"Failed to insert vars data: {str(e)}")
         return HTTPBadRequest(text=json.dumps({"error": str(e)}))
-    
-    
+
+async def modify_var(request: Request):
+    try:
+        data: dict = await request.json()
+
+        var_name = data.get("var_name")
+        var_code = data.get("var_code")
+        var_type = data.get("var_type")
+        var_permission = data.get("var_permission")
+        device_id = data.get("device_id")
+        var_id = data.get("var_id")
+        var_full_code = data.get("var_full_code")
+
+        if (var_name and var_name.strip() and var_code is not None and var_type and var_type.strip() and var_permission and var_permission.strip() and device_id is not None):
+            print(var_name, var_code, var_type, var_permission, device_id, var_id)
+        else:
+            print("modify var insufficient data:", var_name, var_code, var_type, var_permission, device_id, var_id)
+            return HTTPBadRequest(text="upload data is not enough.") 
+
+        res = await MySqlConn.rawSqlCmd(
+                f'''UPDATE vars SET
+                var_name = "{var_name}",
+                var_code = "{var_code}",
+                var_type = "{var_type}",
+                var_permission = "{var_permission}",
+                device_id = "{device_id}",
+                var_full_code = "{var_full_code}"
+                WHERE id = {var_id}''')
+        print(res)
+        return HTTPOk(text=json.dumps(res))
+                    
+    except ValueError as ve:
+        print(f"Validation error: {str(ve)}")
+        return HTTPBadRequest(text=json.dumps({"error": str(ve)}))
+
+    except Exception as e:
+        print(f"Failed to insert vars data: {str(e)}")
+        return HTTPBadRequest(text=json.dumps({"error": str(e)})) 
