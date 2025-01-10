@@ -1,0 +1,17 @@
+[Unit]
+# 服务名称，可自定义
+Description = lvrulan server-tonghua
+After = network.target network-online.target syslog.target
+Wants = network.target network-online.target
+
+[Service]
+Type = simple
+User=leon
+WorkingDirectory=/home/leon/iot_platform_server_lvrulan_tonghua
+ExecStart=/bin/bash -c 'source /home/leon/iot_platform_server_lvrulan_tonghua/iot_server/bin/activate && python3 /home/leon/iot_platform_server_lvrulan_tonghua/server_run_lrl_tonghua.py'
+Restart=always
+RestartSec = 10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy = multi-user.target

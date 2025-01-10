@@ -2,6 +2,7 @@ from aiohttp import web
 import secrets  # 用于生成随机 token
 from aiohttp.web import UrlDispatcher, Request, HTTPOk, HTTPBadRequest, HTTPUnauthorized
 from module.db.mysqlConn import MySqlConn
+import bcrypt # type: ignore
 import json
 
 def add_post(router: UrlDispatcher):
@@ -14,25 +15,36 @@ async def login(request: Request):
     except Exception as e:
         return HTTPBadRequest(text=f"Invalid request format. {e}")
     
-    username = data.get('username')
-    password = data.get('password')
-
-    # data = await MySqlConn.rawSqlCmd(f'INSERT INTO test (value) VALUES ("123")')
-    # return HTTPBadRequest(text=json.dumps(data))
+    entered_user = data.get('username')
+    entered_password = data.get('password')
 
     try:
         # 直接从数据库获取密码
-        user_password = (await MySqlConn.rawSqlCmd(f'SELECT password FROM users WHERE username = "{username}"'))
-        user_password = user_password[0][0]
+        user_password = (await MySqlConn.rawSqlCmd(f'SELECT password FROM users WHERE username = "{entered_user}"'))
+        hashed_password = user_password[0][0]        
+        del user_password
     except IndexError:
         return HTTPUnauthorized(reason="用户不存在")
     
+    auth_pass = False
+
+    try:    
+        if bcrypt.checkpw(entered_password.encode('utf-8'), hashed_password.encode('utf-8')):
+            auth_pass = True
+    except ValueError:
+        pass
+
+    print("login, user: ", entered_user)
+    
     # 直接比较明文密码
-    if user_password == password:
+    if entered_password == hashed_password:
+        auth_pass = True
+    
+    if auth_pass:
         # 生成唯一的 token
         token = secrets.token_hex(16)
         print(token, type(token))
-        await MySqlConn.rawSqlCmd(f'UPDATE users SET token = "{token}" WHERE username = "{username}"')
+        await MySqlConn.rawSqlCmd(f'UPDATE users SET token = "{token}" WHERE username = "{entered_user}"')
         return HTTPOk(text=f"authorized-token={token}")
     else:
         return HTTPUnauthorized(text="密码错误")

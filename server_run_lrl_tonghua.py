@@ -9,7 +9,7 @@ from module.webServer import WebServer
 
 # 配置服务主机和端口
 HOST = "0.0.0.0"
-PORT = 7600
+PORT = 7500
 
 # 用于触发关闭事件的异步事件
 shutdown_event = Event()

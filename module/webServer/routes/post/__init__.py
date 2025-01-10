@@ -12,5 +12,4 @@ def add_post(router:UrlDispatcher):
     add_area.add_post(router)
     add_device.add_post(router)
     add_var.add_post(router)
-    put_var.add_post(router)
     
