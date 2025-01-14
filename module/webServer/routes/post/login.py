@@ -17,6 +17,7 @@ async def login(request: Request):
     
     entered_user = data.get('username')
     entered_password = data.get('password')
+    local_version = data.get('local_version')
 
     try:
         # 直接从数据库获取密码
@@ -44,7 +45,12 @@ async def login(request: Request):
         # 生成唯一的 token
         token = secrets.token_hex(16)
         print(token, type(token))
-        await MySqlConn.rawSqlCmd(f'UPDATE users SET token = "{token}" WHERE username = "{entered_user}"')
+        await MySqlConn.rawSqlCmd(f'UPDATE users SET token = "{token}", local_version = "{local_version}" WHERE username = "{entered_user}"')
+        
+        # 记录登录操作
+        table_name = f"user_{entered_user}"
+        await MySqlConn.insertOperation(table_name, "登录", f"token={token}")
+        
         return HTTPOk(text=f"authorized-token={token}")
     else:
         return HTTPUnauthorized(text="密码错误")

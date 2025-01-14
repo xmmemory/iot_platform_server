@@ -60,6 +60,36 @@ class MySqlConn:
         except Exception as e:
             return print(f"\033[1;31mError occurred when execute query `{query}`. {e}.\033[0m")
         return await cursor.fetchall()
+
+    @with_cursor()
+    async def createTable(cursor:aiomysql.cursors.Cursor, table_name:str):
+        query = f'''
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            operation_type VARCHAR(50) NOT NULL,
+            operation_value VARCHAR(50),
+            operation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        '''
+        try:
+            await cursor.execute(query)
+            return True
+        except Exception as e:
+            print(f"\033[1;31mError creating table {table_name}: {e}\033[0m")
+            return False
+
+    @with_cursor()
+    async def insertOperation(cursor:aiomysql.cursors.Cursor, table_name:str, operation_type:str, operation_value:str = None):
+        query = f'''
+        INSERT INTO {table_name} (operation_type, operation_value)
+        VALUES (%s, %s)
+        '''
+        try:
+            await cursor.execute(query, (operation_type, operation_value))
+            return True
+        except Exception as e:
+            print(f"\033[1;31mError inserting operation into {table_name}: {e}\033[0m")
+            return False
     
     # def transactional_with_cursor():
     #     def decorator(func):

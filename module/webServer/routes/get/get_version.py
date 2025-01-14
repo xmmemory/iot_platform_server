@@ -4,10 +4,6 @@ import json
 
 def add_get(router:UrlDispatcher):
     router.add_get(
-        path= '/version',
-        handler= get_version_by_username
-    )
-    router.add_get(
         path= '/version/f',
         handler= get_version_by_username
     )
