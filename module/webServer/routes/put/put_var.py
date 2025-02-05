@@ -94,7 +94,7 @@ async def modify_var(request: Request):
             return HTTPBadRequest(text="upload data is not enough.") 
 
         res = await MySqlConn.rawSqlCmd(
-                f'''UPDATE vars SET
+                f'''UPDATE device_variables SET
                 var_name = "{var_name}",
                 var_code = "{var_code}",
                 var_type = "{var_type}",

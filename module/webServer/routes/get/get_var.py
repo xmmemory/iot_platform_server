@@ -25,7 +25,7 @@ async def get_data_by_var_id(request:Request):
         if not var_id:
             return HTTPBadRequest(text=json.dumps({"no var_id.": str(e)}))
         else:
-            vars = await MySqlConn.rawSqlCmd(f'''SELECT var_name, var_code, var_type, var_permission from vars WHERE id = "{var_id}" ORDER BY id ASC''')
+            vars = await MySqlConn.rawSqlCmd(f'''SELECT var_name, var_code, var_type, var_permission from device_variables WHERE id = "{var_id}" ORDER BY id ASC''')
             var_list = [{"var_name": var[0], "var_code": var[1], "var_type": var[2], "var_permission": var[3]} for var in vars]
             return HTTPOk(text=json.dumps(var_list))
     
@@ -104,7 +104,7 @@ async def get_vars_by_device_id(request:Request):
             return HTTPBadRequest(text=json.dumps({"error"}))
         else:
             vars = await MySqlConn.rawSqlCmd(f'''SELECT id, var_name, var_code, var_type, var_permission, latest_value, last_datetime, var_full_code 
-                                                 from vars WHERE device_id = "{device_id}" ORDER BY id ASC''')
+                                                 from device_variables WHERE device_id = "{device_id}" ORDER BY id ASC''')
             var_list = [{"var_id": var[0], "var_name": var[1], "var_code": var[2], "var_type": var[3], "var_permission": var[4],
                             "latest_value": var[5], "last_datetime": var[6], "var_full_code": var[7] } for var in vars]
             

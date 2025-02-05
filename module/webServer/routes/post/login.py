@@ -21,7 +21,7 @@ async def login(request: Request):
 
     try:
         # 直接从数据库获取密码
-        user_password = (await MySqlConn.rawSqlCmd(f'SELECT password FROM users WHERE username = "{entered_user}"'))
+        user_password = (await MySqlConn.rawSqlCmd(f'SELECT password FROM users WHERE name = "{entered_user}"'))
         hashed_password = user_password[0][0]        
         del user_password
     except IndexError:
@@ -45,7 +45,7 @@ async def login(request: Request):
         # 生成唯一的 token
         token = secrets.token_hex(16)
         print(token, type(token))
-        await MySqlConn.rawSqlCmd(f'UPDATE users SET token = "{token}", local_version = "{local_version}" WHERE username = "{entered_user}"')
+        await MySqlConn.rawSqlCmd(f'UPDATE users SET token = "{token}", local_version = "{local_version}" WHERE name = "{entered_user}"')
         
         # 记录登录操作
         table_name = f"user_{entered_user}"

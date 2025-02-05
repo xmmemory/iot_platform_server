@@ -13,7 +13,7 @@ def add_get(router:UrlDispatcher):
     )
 
 async def get_all_users(request:Request):
-    users = await MySqlConn.rawSqlCmd("SELECT id, username, permission from users ORDER BY id ASC")
+    users = await MySqlConn.rawSqlCmd("SELECT id, name, permission from users ORDER BY id ASC")
     user_list = [{"id": user[0], "name": user[1], "permission": user[2]} for user in users]
     return HTTPOk(text=json.dumps(user_list))
 
@@ -23,7 +23,7 @@ async def get_user_info(request:Request):
         username = request.query.get('username')  # 从查询参数中获取字段
 
         if username and username.strip():
-            vars = await MySqlConn.rawSqlCmd(f'''SELECT permission, latest_version from users WHERE username = "{username}" ORDER BY id ASC''')
+            vars = await MySqlConn.rawSqlCmd(f'''SELECT permission, latest_version from users WHERE name = "{username}" ORDER BY id ASC''')
             var_list = [{"permission": info[0], "latest_version": info[1]} for info in vars]
             return HTTPOk(text=json.dumps(var_list))
             

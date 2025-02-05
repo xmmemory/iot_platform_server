@@ -21,10 +21,10 @@ async def add_user(request: Request):
         # 对密码进行哈希处理
         hashed_password = bcrypt.hashpw(user_data.user_password.encode('utf-8'), bcrypt.gensalt())
 
-        index = await MySqlConn.rawSqlCmd(f'''SELECT * FROM users WHERE username = "{user_data.user_name}"''')
+        index = await MySqlConn.rawSqlCmd(f'''SELECT * FROM users WHERE name = "{user_data.user_name}"''')
         if not index:
             res = await MySqlConn.rawSqlCmd(
-            f'INSERT INTO users (username, password) VALUES ("{user_data.user_name}", "{hashed_password.decode("utf-8")}")')
+            f'INSERT INTO users (name, password) VALUES ("{user_data.user_name}", "{hashed_password.decode("utf-8")}")')
             print(res)
             
             # 创建用户操作记录表

@@ -36,7 +36,7 @@ async def modify(request: Request):
             # TODO 应该在插入数据之前，首先判断是否存在相同设备(var_code & device_id相同)
             if 1:   
                 res = await MySqlConn.rawSqlCmd(
-                    f'''INSERT INTO vars (var_name, var_code, var_type, var_permission, device_id, var_full_code)
+                    f'''INSERT INTO device_variables (var_name, var_code, var_type, var_permission, device_id, var_full_code)
                     VALUES ("{var_name}","{var_code}", "{var_type}", "{var_permission}", {device_id}, "{var_full_code}")''')
                 print(res)
                 return HTTPOk(text=json.dumps(res))
@@ -45,7 +45,7 @@ async def modify(request: Request):
             
         elif command == "update_var":
             res = await MySqlConn.rawSqlCmd(
-                    f'''UPDATE vars SET
+                    f'''UPDATE device_variables SET
                     var_name = "{var_name}",
                     var_code = "{var_code}",
                     var_type = "{var_type}",
@@ -88,7 +88,7 @@ async def add_var(request: Request):
             # TODO 应该在插入数据之前，首先判断是否存在相同设备(var_code & device_id相同)
         if 1:   
             res = await MySqlConn.rawSqlCmd(
-                f'''INSERT INTO vars (var_name, var_code, var_type, var_permission, device_id, var_full_code)
+                f'''INSERT INTO device_variables (var_name, var_code, var_type, var_permission, device_id, var_full_code)
                 VALUES ("{var_name}","{var_code}", "{var_type}", "{var_permission}", {device_id}, "{var_full_code}")''')
             print(res)
             return HTTPOk(text=json.dumps(res))

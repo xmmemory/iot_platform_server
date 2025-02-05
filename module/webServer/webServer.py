@@ -16,8 +16,8 @@ class WebServer:
         if '--https' in sys.argv:
             self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             self.ssl_context.load_cert_chain(
-                certfile='/etc/letsencrypt/live/ynufe.tech/fullchain.pem',
-                keyfile='/etc/letsencrypt/live/ynufe.tech/privkey.pem'
+                certfile='./certs/fullchain.pem',
+                keyfile='./certs/privkey.pem'
             )
 
         self.setup_routes()
@@ -26,7 +26,7 @@ class WebServer:
 
     def setup_routes(self):
         routes.add_routes(self.app.router)
-        self.app.router.add_static("/download", "/home/leon/iot_server_lvrulan_tonghua/file",show_index=True)
+        self.app.router.add_static("/download", "./file",show_index=True)
         async def handle_404(request:aiohttp.web.Request):
             return aiohttp.web.HTTPNotFound(text=f"404 Not Found:\n{request.path}")
         self.app.router.add_route('*', '/{tail:.*}', handle_404)

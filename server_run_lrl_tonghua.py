@@ -29,9 +29,21 @@ def handle_sigterm():
     print("\nSIGTERM received!\nGracefully shutting down...")
     shutdown_event.set()
 
-# 设置事件循环并绑定信号处理器
-loop = asyncio.get_event_loop()
-loop.add_signal_handler(signal.SIGTERM, handle_sigterm)  # 绑定 SIGTERM 信号
+import platform
+import asyncio
+
+# 设置事件循环
+if platform.system() == 'Windows':
+    loop = asyncio.ProactorEventLoop()
+    asyncio.set_event_loop(loop)
+else:
+    loop = asyncio.get_event_loop()
+
+# 绑定信号处理器
+if platform.system() == 'Windows':
+    signal.signal(signal.SIGINT, lambda signum, frame: handle_sigterm())
+else:
+    loop.add_signal_handler(signal.SIGTERM, handle_sigterm)  # 绑定 SIGTERM 信号
 
 try:
     loop.run_until_complete(main())  # 启动事件循环并运行主程序

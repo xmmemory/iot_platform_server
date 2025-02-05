@@ -15,11 +15,11 @@ async def delete_var_by_id(request: Request):
         var_id= data.get('var_id')
 
         if var_id is not None:
-            result = await MySqlConn.rawSqlCmd(f'''SELECT * FROM vars WHERE id = "{var_id}"''')
+            result = await MySqlConn.rawSqlCmd(f'''SELECT * FROM device_variables WHERE id = "{var_id}"''')
             if not result:
                 return HTTPBadRequest(text="No record found for deletion.")
             else:
-                res = await MySqlConn.rawSqlCmd(f'''DELETE FROM vars WHERE id ="{var_id}" LIMIT 1''')
+                res = await MySqlConn.rawSqlCmd(f'''DELETE FROM device_variables WHERE id ="{var_id}" LIMIT 1''')
                 return HTTPOk(text=json.dumps(res))
         
     except ValueError as ve:

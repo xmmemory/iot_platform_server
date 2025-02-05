@@ -83,7 +83,7 @@ class MqttSubscriber:
 
     async def batch_update(self, updates):
         # 组装 SQL 语句
-        sql = "UPDATE vars SET latest_value = CASE var_full_code "
+        sql = "UPDATE device_variables SET latest_value = CASE var_full_code "
         for var_full_code, latest_value in updates:
             sql += f"WHEN '{var_full_code}' THEN '{latest_value}' "
         sql += "END WHERE var_full_code IN (" + ",".join([f"'{var_full_code}'" for var_full_code, _ in updates]) + ")"
