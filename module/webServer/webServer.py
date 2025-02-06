@@ -31,7 +31,6 @@ class WebServer:
             return aiohttp.web.HTTPNotFound(text=f"404 Not Found:\n{request.path}")
         self.app.router.add_route('*', '/{tail:.*}', handle_404)
 
-
     async def start(self):
         self.runner = aiohttp.web.AppRunner(self.app)
         await self.runner.setup()
@@ -43,7 +42,15 @@ class WebServer:
         )
         await self.site.start()
         # mysql数据库
-        await MySqlConn.openConn("101.201.60.179", 3306, "lrl", "Asynchronous_20241219", "lvrulan_mysql")
+        await MySqlConn.openConn(
+            host="101.201.60.179", 
+            port=3306, 
+            user="lrl", 
+            password="Asynchronous_20241219", 
+            db_name="lvrulan_mysql"  # 这里是数据库名
+        )
+
+        # await MySqlConn.openConn("101.201.60.179", 3306, "lrl", "Asynchronous_20241219", "lvrulan_mysql")
         MySqlConn.useDb("lvrulan_mysql")
         print(f"\033[1;32mWeb server started.")
         print(f"\033[1;30m", end='')
@@ -51,10 +58,14 @@ class WebServer:
         print(f"  -- port:    {self.port}")
         print(f"  -- proc:    {'https' if '--https' in sys.argv else 'http'}")
         print("\033[0m")
+
         # mqtt
         mqtt = MqttSubscriber().connect("101.201.60.179", 1883, "lrl001", "123456")
         mqtt.subscribe("40800965")
         self.mqtt_task = asyncio.get_running_loop().create_task(mqtt.listen())
+
+        # 启动定时任务
+        asyncio.create_task(self.periodic_update_device_status())
 
     async def shutdown(self):
         self.stop_event.set()
@@ -66,3 +77,62 @@ class WebServer:
         await MySqlConn.closeConn('lvrulan_mysql')
         print("\033[1;33mWeb server shutting down.")
         print("\033[0m")
+
+    async def update_vars_status(self):
+        query = """
+        UPDATE device_variables
+        SET status = 'ABNORMAL', updated_at = updated_at
+        WHERE status = 'NORMAL' 
+        AND TIMESTAMPDIFF(SECOND, updated_at, NOW()) > 60;
+        """
+        await MySqlConn.execute(query)
+        # print("Updated var status to ABNORMAL for devices that have not been updated in the last 60 seconds.")
+
+    async def restore_vars_status(self):
+        query = """
+        UPDATE device_variables
+        SET status = 'NORMAL', updated_at = updated_at
+        WHERE status = 'ABNORMAL' 
+        AND TIMESTAMPDIFF(SECOND, updated_at, NOW()) <= 60;
+        """
+        await MySqlConn.execute(query)
+        # print("Restored var status to NORMAL for devices that have been updated in the last 60 seconds.")
+
+    async def update_device_status(self):
+        query = """
+        UPDATE devices d
+        SET d.status = 'ABNORMAL'
+        WHERE d.id IN (
+            SELECT DISTINCT dv.device_id
+            FROM device_variables dv
+            WHERE dv.status = 'ABNORMAL'
+        );
+        """
+        await MySqlConn.execute(query)
+        # print("Restored device status to NORMAL for devices that have been updated in the last 60 seconds.")
+
+    async def restore_device_status(self):
+        query = """
+        UPDATE devices d
+        SET d.status = 'NORMAL'
+        WHERE d.id IN (
+            SELECT dv.device_id
+            FROM device_variables dv
+            GROUP BY dv.device_id
+            HAVING SUM(CASE WHEN dv.status = 'ABNORMAL' THEN 1 ELSE 0 END) = 0
+        );
+        """
+        await MySqlConn.execute(query)
+        # print("Restored device status to NORMAL for devices that have been updated in the last 60 seconds.")
+
+    async def periodic_update_device_status(self):
+        while not self.stop_event.is_set():
+            await self.update_vars_status()
+            await asyncio.sleep(5)
+            await self.restore_vars_status()
+            await asyncio.sleep(5)
+            await self.update_device_status()
+            await asyncio.sleep(5)
+            await self.restore_device_status()
+            await asyncio.sleep(45)  # 每隔 60 秒执行一次
+

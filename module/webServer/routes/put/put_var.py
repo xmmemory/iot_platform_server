@@ -80,23 +80,23 @@ async def modify_var(request: Request):
         data: dict = await request.json()
 
         var_name = data.get("var_name")
-        var_code = data.get("var_code")
+        simple_code = data.get("var_code")
         var_type = data.get("var_type")
         var_permission = data.get("var_permission")
         device_id = data.get("device_id")
         var_id = data.get("var_id")
         var_full_code = data.get("var_full_code")
 
-        if (var_name and var_name.strip() and var_code is not None and var_type and var_type.strip() and var_permission and var_permission.strip() and device_id is not None):
-            print(var_name, var_code, var_type, var_permission, device_id, var_id)
+        if (var_name and var_name.strip() and simple_code is not None and var_type and var_type.strip() and var_permission and var_permission.strip() and device_id is not None):
+            print(var_name, simple_code, var_type, var_permission, device_id, var_id)
         else:
-            print("modify var insufficient data:", var_name, var_code, var_type, var_permission, device_id, var_id)
+            print("modify var insufficient data:", var_name, simple_code, var_type, var_permission, device_id, var_id)
             return HTTPBadRequest(text="upload data is not enough.") 
 
         res = await MySqlConn.rawSqlCmd(
                 f'''UPDATE device_variables SET
                 var_name = "{var_name}",
-                var_code = "{var_code}",
+                simple_code = "{simple_code}",
                 var_type = "{var_type}",
                 var_permission = "{var_permission}",
                 device_id = "{device_id}",
