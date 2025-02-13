@@ -1,5 +1,5 @@
 import asyncio
-import aiohttp.web
+from aiohttp import web
 import ssl
 import sys
 
@@ -11,7 +11,8 @@ class WebServer:
     def __init__(self, host:str, port:int):
         self.host = host
         self.port = port
-        self.app = aiohttp.web.Application()
+        # self.app = web.Application()
+        self.app = web.Application(middlewares=[self.auth_middleware])
 
         if '--https' in sys.argv:
             self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -27,14 +28,37 @@ class WebServer:
     def setup_routes(self):
         routes.add_routes(self.app.router)
         self.app.router.add_static("/download", "./file",show_index=True)
-        async def handle_404(request:aiohttp.web.Request):
-            return aiohttp.web.HTTPNotFound(text=f"404 Not Found:\n{request.path}")
+        async def handle_404(request:web.Request):
+            return web.HTTPNotFound(text=f"404 Not Found:\n{request.path}")
         self.app.router.add_route('*', '/{tail:.*}', handle_404)
 
+    async def auth_middleware(self, app, handler):
+        async def middleware_handler(request):
+            # 允许登录接口和静态文件路径绕过验证
+            if request.path in ["/login", "/download"] or request.path.startswith("/static/"):
+                return await handler(request)
+            
+            token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            if not token:
+                print("Missing token")
+                return web.HTTPUnauthorized(text="Missing token")
+
+            user = await MySqlConn.rawSqlCmd(f"SELECT id FROM users WHERE token = '{token}'")
+            if not user:
+                print("Invalid token")
+                return web.HTTPUnauthorized(text="Invalid token")
+            
+            print(f"User {user[0][0]} authorized")
+            request["user_id"] = user[0][0]  # 存入请求，后续可用
+            return await handler(request)
+
+        return middleware_handler
+
+
     async def start(self):
-        self.runner = aiohttp.web.AppRunner(self.app)
+        self.runner = web.AppRunner(self.app)
         await self.runner.setup()
-        self.site = aiohttp.web.TCPSite(
+        self.site = web.TCPSite(
             runner= self.runner,
             host= self.host,
             port= self.port,

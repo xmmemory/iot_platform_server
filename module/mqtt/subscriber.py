@@ -79,17 +79,19 @@ class MqttSubscriber:
         # execution_time = end_time - start_time
         # print(f"Execution time: {execution_time:.4f} seconds")
 
-        
-
     async def batch_update(self, updates):
         # 组装 SQL 语句
         sql = "UPDATE device_variables SET latest_value = CASE var_full_code "
+        
         for var_full_code, latest_value in updates:
             sql += f"WHEN '{var_full_code}' THEN '{latest_value}' "
-        sql += "END WHERE var_full_code IN (" + ",".join([f"'{var_full_code}'" for var_full_code, _ in updates]) + ")"
-        
+
+        sql += "END, updated_at = NOW() "  # 确保更新时间更新
+        sql += "WHERE var_full_code IN (" + ",".join([f"'{var_full_code}'" for var_full_code, _ in updates]) + ")"
+
         # 执行批量更新
         await MySqlConn.rawSqlCmd(sql)
+
 
     async def insert_or_create_table(self, var_full_code: str, value: str):
         # 用下划线替换点号，避免表名错误

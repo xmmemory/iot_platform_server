@@ -14,9 +14,10 @@ async def get_version_by_username(request:Request):
         username = request.query.get('username')  # 从查询参数中获取字段
 
         if username and username.strip():
-            version = await MySqlConn.rawSqlCmd(f'''SELECT latest_version from users WHERE name = "{username}" ORDER BY id ASC''')
+            version_number = await MySqlConn.rawSqlCmd(f'''SELECT latest_version from users WHERE name = "{username}" ORDER BY id ASC''')
+            change_log = await MySqlConn.rawSqlCmd(f'SELECT change_log FROM version_history WHERE version_number = "{version_number[0][0]}"')
             # 将version转换为JSON格式并返回HTTPOk响应
-            return HTTPOk(text=json.dumps({"latest_version": version}))
+            return HTTPOk(text=json.dumps({"latest_version": version_number, "change_log": change_log[0][0]}))
             
         else:
             return HTTPBadRequest(text="unknow error.")
