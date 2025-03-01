@@ -1,5 +1,6 @@
 import asyncio
 from aiohttp import web
+from aiohttp_cors import setup as cors_setup, ResourceOptions
 import ssl
 import sys
 
@@ -11,8 +12,22 @@ class WebServer:
     def __init__(self, host:str, port:int):
         self.host = host
         self.port = port
-        # self.app = web.Application()
-        self.app = web.Application(middlewares=[self.auth_middleware])
+        # self.app = web.Application(middlewares=[self.auth_middleware])
+        self.app = web.Application()
+        
+        # Configure CORS
+        cors = cors_setup(self.app, defaults={
+            "*": ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+                allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+            )
+        })
+        
+        # Configure CORS on all routes
+        for route in list(self.app.router.routes()):
+            cors.add(route)
 
         if '--https' in sys.argv:
             self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -44,12 +59,13 @@ class WebServer:
                 return web.HTTPUnauthorized(text="Missing token")
 
             user = await MySqlConn.rawSqlCmd(f"SELECT id FROM users WHERE token = '{token}'")
-            if not user:
-                print("Invalid token")
-                return web.HTTPUnauthorized(text="Invalid token")
+            if not user or not user[0] or not user[0][0]:
+                print("Invalid token or user not found")
+                return web.HTTPUnauthorized(text="Invalid token or user not found")
             
-            print(f"User {user[0][0]} authorized")
-            request["user_id"] = user[0][0]  # 存入请求，后续可用
+            user_id = user[0][0]
+            print(f"User {user_id} authorized")
+            request["user_id"] = user_id  # 存入请求，后续可用
             return await handler(request)
 
         return middleware_handler
@@ -159,4 +175,3 @@ class WebServer:
             await asyncio.sleep(5)
             await self.restore_device_status()
             await asyncio.sleep(45)  # 每隔 60 秒执行一次
-
