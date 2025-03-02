@@ -11,6 +11,56 @@ def add_get(router:UrlDispatcher):
         path = '/project/f',
         handler = get_project_by_id
     )
+    router.add_get(
+        path = '/api/projects',
+        handler = api_get_projects
+    )
+
+async def api_get_projects(request: Request):
+    try:
+        # 解析分页参数
+        page = int(request.query.get('page', 1))
+        page_size = int(request.query.get('pageSize', 10))
+        
+        # 计算偏移量
+        offset = (page - 1) * page_size
+        
+        # 执行分页查询
+        projects = await MySqlConn.rawSqlCmd(
+            f"SELECT id, name FROM projects ORDER BY id ASC LIMIT {page_size} OFFSET {offset}"
+        )
+        
+        # 查询总记录数
+        total_count_query = await MySqlConn.rawSqlCmd("SELECT COUNT(*) FROM projects")
+        total_count = total_count_query[0][0] if total_count_query else 0
+        
+        # 构建响应数据
+        project_list = [
+            {
+                "project_id": project[0], 
+                "project_name": project[1]
+            } for project in projects
+        ]
+        
+        response_data = {
+            "data": project_list,
+            "pagination": {
+                "page": page,
+                "pageSize": page_size,
+                "total": total_count
+            }
+        }
+        
+        return HTTPOk(text=json.dumps(response_data))
+    
+    except ValueError as ve:
+        print(f"Validation error: {str(ve)}")
+        return HTTPBadRequest(text=json.dumps({"error": str(ve)}))
+    
+    except Exception as e:
+        print(f"Failed to get project data: {str(e)}")
+        return HTTPBadRequest(text=json.dumps({"error": str(e)}))
+
 
 async def get_all_projects(request:Request):
     projects = await MySqlConn.rawSqlCmd("SELECT id, name from projects ORDER BY id ASC")    
